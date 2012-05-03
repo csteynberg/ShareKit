@@ -242,4 +242,20 @@
     return result;
 }
 
+- (void) setToRecipients:(NSArray*) toRecipients {
+	if (custom == nil)
+		self.custom = [NSMutableDictionary dictionaryWithCapacity:0];
+	
+	if (toRecipients == nil)
+		[custom removeObjectForKey:@"toRecipients"];
+    
+	else
+		[custom setObject:toRecipients forKey:@"toRecipients"];
+}
+
+- (NSArray*) toRecipients {
+	return [custom objectForKey:@"toRecipients"];
+}
+
+
 @end

@@ -84,4 +84,8 @@ typedef enum
 - (NSDictionary *)dictionaryRepresentation;
 + (id)itemFromDictionary:(NSDictionary *)dictionary;
 
+- (void) setToRecipients:(NSArray*) toRecipients;
+- (NSArray*) toRecipients;
+
+
 @end
