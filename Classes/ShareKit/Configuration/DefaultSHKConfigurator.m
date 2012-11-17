@@ -84,9 +84,25 @@
 }
 
 //Change if your app needs some special Facebook permissions only. In most cases you can leave it as it is.
-- (NSArray*)facebookListOfPermissions {    
-    return [NSArray arrayWithObjects:@"publish_stream", @"offline_access", nil];
+
+// new with the 3.1 SDK facebook wants you to request read and publish permissions separatly. If you don't
+// you won't get a smooth login/auth flow. Since ShareKit does not require any read permissions.
+- (NSArray*)facebookWritePermissions {    
+    return [NSArray arrayWithObjects:@"publish_actions", nil];
 }
+- (NSArray*)facebookReadPermissions {    
+    return nil;	// this is the defaul value for the SDK and will afford basic read permissions
+}
+
+/*
+ If you want to force use of old-style, posting path that does not use the native sheet. One of the troubles
+ with the native sheet is that it gives IOS6 props on facebook instead of your app. This flag has no effect
+ on the auth path. It will try to use native auth if availible.
+ */
+- (NSNumber*)forcePreIOS6FacebookPosting {
+	return [NSNumber numberWithBool:false];
+}
+
 
 // Read It Later - http://readitlaterlist.com/api/signup/ 
 - (NSString*)readItLaterKey {
@@ -143,20 +159,17 @@
 }
 // Evernote - http://www.evernote.com/about/developer/api/
 /*	You need to set to sandbox until you get approved by evernote. If you use sandbox, you can use it with special sandbox user account only. You can create it here: https://sandbox.evernote.com/Registration.action
+    If you already have a consumer-key and secret which have been created with the old username/password authentication system
+    (created before May 2012) you have to get a new consumer-key and secret, as the old one is not accepted by the new authentication
+    system.
  // Sandbox
- #define SHKEvernoteUserStoreURL    @"https://sandbox.evernote.com/edam/user"
- #define SHKEvernoteNetStoreURLBase @"http://sandbox.evernote.com/edam/note/"
+ #define SHKEvernoteHost    @"sandbox.evernote.com"
  
  // Or production
- #define SHKEvernoteUserStoreURL    @"https://www.evernote.com/edam/user"
- #define SHKEvernoteNetStoreURLBase @"http://www.evernote.com/edam/note/"
+ #define SHKEvernoteHost    @"www.evernote.com"
  */
 
-- (NSString*)evernoteUserStoreURL {
-	return @"";
-}
-
-- (NSString*)evernoteNetStoreURLBase {
+- (NSString*)evernoteHost {
 	return @"";
 }
 
@@ -251,8 +264,8 @@
     return nil;
 }
 
-// iPad views
-- (NSString*)modalPresentationStyle {
+// iPad views. You can change presentation style for different sharers
+- (NSString *)modalPresentationStyleForController:(UIViewController *)controller {
 	return @"UIModalPresentationFormSheet";// See: http://developer.apple.com/iphone/library/documentation/UIKit/Reference/UIViewController_Class/Reference/Reference.html#//apple_ref/occ/instp/UIViewController/modalPresentationStyle
 }
 
@@ -264,11 +277,15 @@
 	return [NSNumber numberWithInt:0];// Setting this to 1 will show list in Alphabetical Order, setting to 0 will follow the order in SHKShares.plist
 }
 
-// Name of the plist file that defines the class names of the sharers to use. Usually should not be changed, but 
-// this allows you to subclass a sharer and have the subclass be used.
+/* Name of the plist file that defines the class names of the sharers to use. Usually should not be changed, but this allows you to subclass a sharer and have the subclass be used. Also helps, if you want to exclude some sharers - you can create your own plist, and add it to your project. This way you do not need to change original SHKSharers.plist, which is a part of subproject - this allows you upgrade easily as you did not change ShareKit itself 
+ 
+    You can specify also your own bundle here, if needed. For example:
+ return [[[NSBundle mainBundle] pathForResource:@"Vito" ofType:@"bundle"] stringByAppendingPathComponent:@"VKRSTestSharers.plist"]
+ */
 - (NSString*)sharersPlistName {
 	return @"SHKSharers.plist";
 }
+
 // SHKActionSheet settings
 - (NSNumber*)showActionSheetMoreButton {
 	return [NSNumber numberWithBool:true];// Setting this to true will show More... button in SHKActionSheet, setting to false will leave the button out.
@@ -301,13 +318,25 @@
  UI Configuration : Advanced
  ---------------------------
  If you'd like to do more advanced customization of the ShareKit UI, like background images and more,
- check out http://getsharekit.com/customize
+ check out http://getsharekit.com/customize. To use a subclass, you can create your own, and let ShareKit know about it in your configurator, overriding one (or more) of these methods.
  */
 
-// turn on to use placeholders in edit fields instead of labels to the left for input fields.
-- (NSNumber*)usePlaceholders {
-	return [NSNumber numberWithBool:false];
+- (Class)SHKActionSheetSubclass {    
+    return NSClassFromString(@"SHKActionSheet");
 }
+
+- (Class)SHKShareMenuSubclass {    
+    return NSClassFromString(@"SHKShareMenu");
+}
+
+- (Class)SHKShareMenuCellSubclass {
+    return NSClassFromString(@"UITableViewCell");
+}
+
+- (Class)SHKFormControllerSubclass {
+    return NSClassFromString(@"SHKFormController");
+}
+
 /*
  Advanced Configuration
  ----------------------
@@ -352,18 +381,13 @@
 
 /* SHKMail */
 
-//constructed during runtime from user input in shareForm by default
-- (NSString*)mailBody {
-    return nil;
+//You can use this to prefill recipients. User enters them in MFMailComposeViewController by default. Should be array of NSStrings.
+- (NSArray *)mailToRecipients {
+	return nil;
 }
 
 - (NSNumber*)isMailHTML {
     return [NSNumber numberWithInt:1];
-}
-
-//user enters them in MFMailComposeViewController by default. Should be array of NSStrings.
-- (NSArray*)mailToRecipients {
-    return nil;
 }
 
 //used only if you share image. Values from 1.0 to 0.0 (maximum compression).
@@ -387,7 +411,16 @@
     return nil;
 }
 
+/* SHKTextMessage */
 
+//You can use this to prefill recipients. User enters them in MFMessageComposeViewController by default. Should be array of NSStrings.
+- (NSArray *)textMessageToRecipients {
+  return nil;
+}
 
+-(NSString*) popOverSourceRect;
+ {
+  return NSStringFromCGRect(CGRectZero);
+}
 
 @end

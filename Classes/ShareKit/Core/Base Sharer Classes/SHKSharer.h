@@ -27,8 +27,7 @@
 
 #import <UIKit/UIKit.h>
 #import "SHK.h"
-#import "SHKCustomFormController.h"
-
+#import "SHKFormController.h"
 
 @class SHKSharer;
 
@@ -162,6 +161,8 @@ typedef enum
 #pragma mark -
 #pragma mark API Implementation
 
+-(NSString *)tagStringJoinedBy:(NSString *)joinString allowedCharacters:(NSCharacterSet *)charset tagPrefix:(NSString *)prefixString;
+
 - (BOOL)validateItem;
 - (BOOL)tryToSend;
 - (BOOL)send;
@@ -193,9 +194,10 @@ typedef enum
 - (void)sendDidFailWithError:(NSError *)error;
 - (void)sendDidFailWithError:(NSError *)error shouldRelogin:(BOOL)shouldRelogin;
 - (void)sendDidCancel;
-/*  centralized authentication error reporting */
+/*  centralized error reporting */
 - (void)authShowBadCredentialsAlert;
 - (void)authShowOtherAuthorizationErrorAlert;
+- (void)sendShowSimpleErrorAlert;
 /*	called when an auth request returns. This is helpful if you need to use a service somewhere else in your
 	application other than sharing. It lets you use the same stored auth creds and login screens.
  */

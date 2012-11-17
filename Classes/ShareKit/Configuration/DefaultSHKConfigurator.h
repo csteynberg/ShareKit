@@ -53,7 +53,9 @@
 - (NSString*)vkontakteAppId;
 - (NSString*)facebookAppId;
 - (NSString*)facebookLocalAppId;
-- (NSArray*)facebookListOfPermissions;
+- (NSArray*)facebookWritePermissions;
+- (NSArray*)facebookReadPermissions;
+- (NSNumber*)forcePreIOS6FacebookPosting;
 - (NSString*)readItLaterKey;
 - (NSString*)diigoKey;
 - (NSNumber*)forcePreIOS5TwitterAccess;
@@ -62,8 +64,7 @@
 - (NSString*)twitterCallbackUrl;
 - (NSNumber*)twitterUseXAuth;
 - (NSString*)twitterUsername;
-- (NSString*)evernoteUserStoreURL;
-- (NSString*)evernoteNetStoreURLBase;
+- (NSString*)evernoteHost;
 - (NSString*)evernoteConsumerKey;
 - (NSString*)evernoteSecret;
 - (NSString*)flickrConsumerKey;
@@ -84,7 +85,7 @@
 - (UIColor*)barTintForView:(UIViewController*)vc;
 - (UIColor*)formFontColor;
 - (UIColor*)formBackgroundColor;
-- (NSString*)modalPresentationStyle;
+- (NSString*)modalPresentationStyleForController:(UIViewController *)controller;
 - (NSString*)modalTransitionStyle;
 - (NSNumber*)maxFavCount;
 - (NSNumber*)autoOrderFavoriteSharers;
@@ -94,18 +95,23 @@
 - (NSNumber*)showActionSheetMoreButton;
 - (NSNumber*)allowOffline;
 - (NSNumber*)allowAutoShare;
-- (NSNumber*)usePlaceholders;
+- (Class)SHKActionSheetSubclass;
+- (Class)SHKShareMenuSubclass;
+- (Class)SHKShareMenuCellSubclass;
+- (Class)SHKFormControllerSubclass;
 
 //SHKPrint
 - (NSNumber*)printOutputType;
 //SHKMail
-- (NSString*)mailBody;
+- (NSArray *)mailToRecipients;
 - (NSNumber*)isMailHTML;
-- (NSArray*)mailToRecipients;
 - (NSNumber*)mailJPGQuality;
 - (NSNumber*)sharedWithSignature;
 //SHKFacebook
 - (NSString *)facebookURLSharePictureURI;
 - (NSString *)facebookURLShareDescription;
-
+//SHKTextMessage
+- (NSArray *)textMessageToRecipients;
+//SHKInstagram and future others
+-(NSString*) popOverSourceRect;
 @end

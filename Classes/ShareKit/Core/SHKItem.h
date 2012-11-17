@@ -37,6 +37,14 @@ typedef enum
     SHKShareTypeUserInfo
 } SHKShareType;
 
+typedef enum 
+{
+    SHKURLContentTypeUndefined,
+    SHKURLContentTypeWebpage,
+    SHKURLContentTypeAudio,
+    SHKURLContentTypeVideo,
+} SHKURLContentType;
+
 
 @interface SHKItem : NSObject
 {	
@@ -48,25 +56,38 @@ typedef enum
 	
 	NSString *title;
 	NSString *text;
-	NSString *tags;
+	NSArray *tags;
 	
 	NSData *data;
 	NSString *mimeType;
 	NSString *filename;
+  
+    NSArray *mailToRecipients;
+    BOOL isMailHTML;
+    CGFloat mailJPGQuality;
+    BOOL mailShareWithAppSignature;
+    
+    NSString *facebookURLSharePictureURI;
+    NSString *facebookURLShareDescription;
+    
+    NSArray *textMessageToRecipients;
 	
-	@private
-		NSMutableDictionary *custom;
+	CGRect popOverSourceRect;
+  
+@private
+	NSMutableDictionary *custom;
 }
 
 @property (nonatomic)			SHKShareType shareType;
 
 @property (nonatomic, retain)	NSURL *URL;
+@property (nonatomic) SHKURLContentType URLContentType;
 
 @property (nonatomic, retain)	UIImage *image;
 
 @property (nonatomic, retain)	NSString *title;
 @property (nonatomic, retain)	NSString *text;
-@property (nonatomic, retain)	NSString *tags;
+@property (nonatomic, retain)	NSArray *tags;
 
 @property (nonatomic, retain)	NSData *data;
 @property (nonatomic, retain)	NSString *mimeType;
@@ -76,7 +97,11 @@ typedef enum
 
 /* always use these for SHKItem object creation, as they implicitly set appropriate SHKShareType. Items without SHKShareType will not be shared! */
 
-+ (id)URL:(NSURL *)url title:(NSString *)title;
++ (id)URL:(NSURL *)url title:(NSString *)title __attribute__((deprecated));//use the method with content type instead
+
+//Some sharers might present audio and video urls in enhanced way - e.g with media player (see Tumblr sharer). Other sharers share same way they used to, regardless of what type is specified.
++ (id)URL:(NSURL *)url title:(NSString *)title contentType:(SHKURLContentType)type;
+
 + (id)image:(UIImage *)image title:(NSString *)title;
 + (id)text:(NSString *)text;
 + (id)file:(NSData *)data filename:(NSString *)filename mimeType:(NSString *)mimeType title:(NSString *)title;
@@ -98,16 +123,18 @@ typedef enum
 
 /*** sharer specific extension properties ***/
 
-/* sharers might be instructed to share the item in specific ways, e.g. SHKPrint's print quality, SHKMail's send to specified recipients etc. Generally, YOU DO NOT NEED TO SET THESE, as sharers perfectly work with automatic default values. You can change default values in your app's configurator, or individually during SHKItem creation. Example is in the demo app - ExampleShareLink.m - share method. More info about particular setting is in DefaultSHKConfigurator.m
+/* sharers might be instructed to share the item in specific ways, e.g. SHKPrint's print quality, SHKMail's send to specified recipients etc. 
+ Generally, YOU DO NOT NEED TO SET THESE, as sharers perfectly work with automatic default values. You can change default values in your app's 
+ configurator, or individually during SHKItem creation. Example is in the demo app - ExampleShareLink.m - share method. More info about 
+ particular setting is in DefaultSHKConfigurator.m
  */
 
 /* SHKPrint */
 @property (nonatomic) UIPrintInfoOutputType printOutputType;
 
 /* SHKMail */
-@property (nonatomic, retain) NSString *mailBody;
+@property (nonatomic, retain) NSArray *mailToRecipients;
 @property BOOL isMailHTML;
-@property (nonatomic, retain) NSArray *mailToRecipients; 
 @property CGFloat mailJPGQuality; 
 @property BOOL mailShareWithAppSignature; //default NO. Appends "Sent from <appName>"
 
@@ -115,7 +142,12 @@ typedef enum
 @property (nonatomic, retain) NSString *facebookURLSharePictureURI;
 @property (nonatomic, retain) NSString *facebookURLShareDescription;
 
-- (void) setToRecipients:(NSArray*) toRecipients;
-- (NSArray*) toRecipients;
+/* SHKTextMessage */
+@property (nonatomic, retain) NSArray *textMessageToRecipients;
+/* if you add new sharer specific properties, make sure to add them also to dictionaryRepresentation, itemWithDictionary and description methods in SHKItem.m */
+
+/* put in for SHKInstagram, but could be useful in some other place. This is the rect in the coordinates of the view of the viewcontroller set with
+ setRootViewController: where a popover should eminate from. If this isn't provided the popover will be presented from the top left. */
+@property (nonatomic, assign) CGRect popOverSourceRect;
 
 @end

@@ -105,8 +105,6 @@
         {
             [self authShowOtherAuthorizationErrorAlert];
         }
-        
-        SHKLog(@"%@", [aRequest description]);
     }
   
 	[self authDidFinish:aRequest.success];
@@ -121,7 +119,7 @@
 	if (type == SHKShareTypeURL)
 		return [NSArray arrayWithObjects:
 				[SHKFormFieldSettings label:SHKLocalizedString(@"Title") key:@"title" type:SHKFormFieldTypeText start:item.title],
-				[SHKFormFieldSettings label:SHKLocalizedString(@"Tags") key:@"tags" type:SHKFormFieldTypeText start:item.tags],
+				[SHKFormFieldSettings label:SHKLocalizedString(@"Tag, tag") key:@"tags" type:SHKFormFieldTypeText start:[item.tags componentsJoinedByString:@", "]],
 				[SHKFormFieldSettings label:SHKLocalizedString(@"Notes") key:@"text" type:SHKFormFieldTypeText start:item.text],
 				[SHKFormFieldSettings label:SHKLocalizedString(@"Shared") key:@"shared" type:SHKFormFieldTypeSwitch start:SHKFormFieldSwitchOff],
 				nil];
@@ -139,8 +137,10 @@
 	if ([self validateItem])
 	{	
     
-    NSString *params = [NSMutableString stringWithFormat:@"key=%@&url=%@&title=%@&tags=%@&desc=%@&shared=%@",SHKCONFIG(diigoKey),SHKEncodeURL(item.URL),SHKEncode(item.title),SHKEncode(item.tags),SHKEncode(item.text),[item customBoolForSwitchKey:@"shared"]?@"yes":@"no"];
-    
+        NSMutableCharacterSet *allowedCharacters = [NSMutableCharacterSet alphanumericCharacterSet];
+        [allowedCharacters formUnionWithCharacterSet:[NSCharacterSet punctuationCharacterSet]];
+        [allowedCharacters removeCharactersInString:@","];
+        NSString *params = [NSMutableString stringWithFormat:@"key=%@&url=%@&title=%@&tags=%@&desc=%@&shared=%@",SHKCONFIG(diigoKey),SHKEncodeURL(item.URL),SHKEncode(item.title),SHKEncode([self tagStringJoinedBy:@"," allowedCharacters:allowedCharacters tagPrefix:nil]),SHKEncode(item.text),[item customBoolForSwitchKey:@"shared"]?@"yes":@"no"];
     
 		NSString *password = [SHKEncode([self getAuthValueForKey:@"password"]) stringByReplacingOccurrencesOfString:@"/" withString:@"%2F"];
     
@@ -167,23 +167,21 @@
 
 - (void)sendFinished:(SHKRequest *)aRequest
 {	
-  //should use json kit for respond
 	if (aRequest.success)
 	{
-		if ([[aRequest getResult] rangeOfString:@"bookmark"].location != NSNotFound)
-		{
-			[self sendDidFinish];
-			return;
-		}
-	} else if (aRequest.response.statusCode == 401) {
-        
-        SHKLog(@"%@", [aRequest description]);
-        [self shouldReloginWithPendingAction:SHKPendingSend];        
-        return;
+		[self sendDidFinish];
+	}
+    else
+    {   
+        if (aRequest.response.statusCode == 401)
+        {        
+        [self shouldReloginWithPendingAction:SHKPendingSend];       
+        }
+        else
+        {        
+        [self sendShowSimpleErrorAlert];
+        }
     }
-	
-	[self sendDidFailWithError:[SHK error:SHKLocalizedString(@"There was a problem saving to %@", [[self class] sharerTitle])]];
-    SHKLog(@"%@", [aRequest description]);
 }
 
 @end
